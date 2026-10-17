@@ -134,7 +134,23 @@
     };
   }
 
-  g.RxLogic = { ext: ext, fmt: fmt, dec: dec, isFem: isFem, parseInterval: parseInterval, intervalLabel: intervalLabel,
+  /** Classe terapêutica para fins de paginação: antibióticos e antissépticos contam como UMA só classe. */
+  function classKey(groupId) { return groupId === "antissepticos" ? "antibioticos" : groupId; }
+
+  /** Divide os itens em páginas de, no máximo, maxClasses classes (ordem de 1ª aparição). Cada item precisa de .cls */
+  function paginate(items, maxClasses) {
+    maxClasses = maxClasses || 3;
+    var order = [];
+    items.forEach(function (it) { if (order.indexOf(it.cls) < 0) order.push(it.cls); });
+    var pages = [];
+    for (var i = 0; i < order.length; i += maxClasses) {
+      var set = order.slice(i, i + maxClasses);
+      pages.push(items.filter(function (it) { return set.indexOf(it.cls) >= 0; }));
+    }
+    return pages.length ? pages : [[]];
+  }
+
+  g.RxLogic = { classKey: classKey, paginate: paginate, ext: ext, fmt: fmt, dec: dec, isFem: isFem, parseInterval: parseInterval, intervalLabel: intervalLabel,
     leadNum: leadNum, calcQty: calcQty, buildInstruction: buildInstruction, buildItem: buildItem };
   if (typeof module !== "undefined" && module.exports) module.exports = g.RxLogic;
 })(typeof window !== "undefined" ? window : globalThis);

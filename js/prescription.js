@@ -19,8 +19,19 @@
     return { gid: gid, group: g, drug: g.drugs.find(function (d) { return d.name === name; }) };
   }
   function isExt(drug) { return drug.use === "externo"; }
-  function classesCount(keys) {
-    var set = {}; keys.forEach(function (k) { var f = find(k); if (!isExt(f.drug)) set[f.gid] = 1; }); return Object.keys(set).length;
+  /* Classe terapêutica de cada medicamento (antibióticos e antissépticos = uma só) */
+  function classKeys(keys) {
+    var set = [];
+    keys.forEach(function (k) { var c = L.classKey(find(k).gid); if (set.indexOf(c) < 0) set.push(c); });
+    return set;
+  }
+  function classesCount(keys) { return classKeys(keys).length; }
+  function classLabel(c) { return c === "antibioticos" ? "Antibióticos / Antissépticos" : D.RX.find(function (g) { return g.id === c; }).title; }
+  /** Páginas previstas: até 3 classes por página */
+  function pagePlan(keys) {
+    var cls = classKeys(keys), pages = [];
+    for (var i = 0; i < cls.length; i += 3) pages.push(cls.slice(i, i + 3));
+    return pages;
   }
   function formOf(drug, p) { var fs = drug.posology.forms; return fs.find(function (f) { return f.id === p.formId; }) || fs[0]; }
   function defaults(drug, formId) {
@@ -112,7 +123,10 @@
         }).join("") + "</div>";
     });
     if (!any) h += '<div class="empty">Nenhum medicamento encontrado.</div>';
-    h += '<div class="sticky-bar"><div class="sb-t">' + n + " selecionado(s) · classes de uso interno: <b>" + cls + "/3</b></div><button class=\"btn pri block\" data-act=\"rxNext\"" + (n ? "" : " disabled") + ">Continuar</button></div>";
+    var pg = pagePlan(S.rx.sel).length;
+    h += '<div class="sticky-bar"><div class="sb-t">' + n + " selecionado(s) · classes: <b>" + cls + "</b> · receita de <b>" + Math.max(pg, 1) + " página" + (pg > 1 ? "s" : "") + "</b></div>" +
+      (pg > 1 ? '<div class="sb-t" style="margin-top:-4px;color:var(--warn)">Mais de 3 classes: a receita será dividida em páginas.</div>' : "") +
+      '<button class="btn pri block" data-act="rxNext"' + (n ? "" : " disabled") + ">Continuar</button></div>";
     return h;
   }
 
@@ -146,10 +160,15 @@
     if (rx.sel.some(function (k) { return CONTROLLED.indexOf(find(k).gid) >= 0; }))
       h += '<div class="banner red"><b class="t">Receita de controle especial</b><p>Este receituário inclui medicamento sujeito a controle especial (RDC Anvisa 222/2023). Use o talonário/receituário apropriado.</p></div>';
 
+    var plan = pagePlan(rx.sel);
+    var crowded = plan.some(function (cl) { return rx.sel.filter(function (k) { return cl.indexOf(L.classKey(find(k).gid)) >= 0; }).length > 8; });
+    if (crowded) h += '<div class="banner amber"><b class="t">Muitos medicamentos em uma página</b><p>Cabem até 8 medicamentos por página. Com mais que isso a receita ganhará uma página extra. Remova itens se quiser manter uma única página.</p></div>';
+    if (plan.length > 1) h += '<div class="banner blue"><b class="t">Receita em ' + plan.length + ' páginas</b><p>Cada página comporta até 3 classes de medicamentos (antibióticos e antissépticos contam como uma só). Todas repetem o nome do paciente, endereço, cidade, data e assinatura.</p>' +
+      plan.map(function (cl, i) { return "<p><b>Página " + (i + 1) + ":</b> " + esc(cl.map(classLabel).join(" · ")) + "</p>"; }).join("") + "</div>";
     h += '<button class="btn pri block" style="margin-top:6px" data-act="rxGen"' + (rx.busy ? " disabled" : "") + ">" + (rx.busy ? "Gerando..." : "Gerar receita em PDF") + "</button>";
 
     if (rx.pdf) {
-      h += '<div class="card tint" id="rxResult" style="margin-top:14px;' + tint("#30d158", 0.09, 0.3) + '"><div class="glint"></div><span class="lbl" style="color:var(--ok)">Receita gerada</span>' +
+      h += '<div class="card tint" id="rxResult" style="margin-top:14px;' + tint("#30d158", 0.09, 0.3) + '"><div class="glint"></div><span class="lbl" style="color:var(--ok)">Receita gerada · ' + rx.pdf.pages + (rx.pdf.pages === 1 ? " página" : " páginas") + '</span>' +
         '<div class="note">O PDF não contém endereço do site, número de página, data nem horário do navegador.</div>' +
         '<div style="display:grid;gap:8px"><a class="btn pri block" style="text-decoration:none" href="' + rx.pdf.url + '" target="_blank" rel="noopener">Abrir / imprimir PDF</a>' +
         '<a class="btn def block" style="text-decoration:none" href="' + rx.pdf.url + '" download="' + esc(rx.pdf.fileName) + '">Baixar PDF</a>' +
@@ -177,11 +196,7 @@
   AC.rxToggle = function (key) {
     var rx = S.rx, i = rx.sel.indexOf(key);
     if (i >= 0) { rx.sel.splice(i, 1); delete rx.pos[key]; }
-    else {
-      var next = rx.sel.concat([key]);
-      if (classesCount(next) > 3) { A.toast("Limite: máximo de 3 classes de uso interno por receita."); return; }
-      rx.sel = next;
-    }
+    else rx.sel = rx.sel.concat([key]);
     render();
   };
   AC.rxNext = function () {
@@ -212,19 +227,20 @@
     var rx = S.rx;
     if (!rx.name.trim()) { A.toast("Informe o nome do paciente."); return; }
     if (needsWeight() && !(A.num(rx.weight) > 0)) { A.toast("Informe o peso do paciente para calcular a dose por kg."); return; }
-    if (classesCount(rx.sel) > 3) { A.toast("Máximo de 3 classes de uso interno por receita."); return; }
     rx.busy = true; render();
     var w = A.num(rx.weight);
-    var items = rx.sel.map(function (k) { var f = find(k); return L.buildItem(f.drug, f.gid, getP(k), w, ANALGESIC); });
-    var controlled = rx.sel.some(function (k) { return CONTROLLED.indexOf(find(k).gid) >= 0; });
+    var items = rx.sel.map(function (k) {
+      var f = find(k), it = L.buildItem(f.drug, f.gid, getP(k), w, ANALGESIC);
+      it.cls = L.classKey(f.gid); it.controlled = CONTROLLED.indexOf(f.gid) >= 0; return it;
+    });
     var addr = A.fmtAddress({ street: rx.street, number: rx.number, city: rx.city, uf: rx.uf, address: rx.legacyAddress && !rx.street && !rx.city ? rx.legacyAddress : "" });
     var dateText = new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
-    window.RxPdf.build({ patientName: rx.name, address: addr, attendCity: S.settings.attendCity, dateText: dateText, items: items, controlled: controlled })
-      .then(function (bytes) {
-        pdfBlob = new Blob([bytes], { type: "application/pdf" });
+    window.RxPdf.build({ patientName: rx.name, address: addr, attendCity: S.settings.attendCity, dateText: dateText, items: items })
+      .then(function (res) {
+        pdfBlob = new Blob([res.bytes], { type: "application/pdf" });
         if (rx.pdf) URL.revokeObjectURL(rx.pdf.url);
         var fname = "Receita - " + rx.name.trim().replace(/[\\/:*?"<>|]+/g, " ") + ".pdf";
-        rx.pdf = { url: URL.createObjectURL(pdfBlob), fileName: fname };
+        rx.pdf = { url: URL.createObjectURL(pdfBlob), fileName: fname, pages: res.pages };
         rx.busy = false; render();
         var r = document.getElementById("rxResult"); if (r) r.scrollIntoView({ behavior: "smooth", block: "center" });
       })
