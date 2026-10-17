@@ -1,5 +1,5 @@
 # Prescription — Apoio Clínico Odontológico
-
+TEXTE
 Aplicativo web (PWA) que reúne, em um só lugar:
 
 | Aba | O que faz |
