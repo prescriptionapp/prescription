@@ -30,7 +30,7 @@ Os dados dos pacientes ficam **somente no aparelho** (armazenamento local do nav
 ### Opção B — pelo terminal (git)
 ```bash
 cd prescription
-git init && git add . && git commit -m "Prescription v1.2.0"
+git init && git add . && git commit -m "Prescription v1.2.1"
 git branch -M main
 git remote add origin https://github.com/SEU-USUARIO/prescription.git
 git push -u origin main
@@ -49,16 +49,16 @@ Depois ative **Settings → Pages → Deploy from a branch → main / root**.
 
 O PDF é desenhado diretamente pelo app (biblioteca `pdf-lib`, incluída em `vendor/`), no formato A5. Por isso **não aparece** endereço do site, número de página nem data/horário.
 
-Layout: "Para o paciente …" e "Residente em …" centralizados · USO INTERNO / USO EXTERNO à esquerda · `*` antes de cada medicamento · linha pontilhada até a quantidade · cidade do atendimento centralizada sobre a data, com o bloco alinhado à direita · linha de assinatura.
+Layout: "Para o paciente …" e "Residente em …" centralizados · USO INTERNO / USO EXTERNO à esquerda · `*` antes de cada medicamento · linha pontilhada até a quantidade · cidade do atendimento centralizada sobre a data, com o bloco alinhado à direita e ancorado no **fim da página** · filete decorativo no topo e no rodapé (sem espaço em branco no início).
 
 **Páginas:**
-- Cada receita cabe em **uma página**; se houver muitos itens, a letra é reduzida automaticamente (cabem até 8 medicamentos).
-- Com **mais de 3 classes** de medicamentos, o app gera uma página nova para cada grupo de até 3 classes. Cada página repete paciente, endereço, cidade, data e assinatura.
+- Cada receita cabe em **uma página**; se houver muitos itens, a letra é reduzida automaticamente (cabem até 10 medicamentos).
+- Com **mais de 3 classes** de medicamentos, o app gera uma página nova para cada grupo de até 3 classes. Cada página repete paciente, endereço, cidade e data.
 - **Antibióticos e antissépticos contam como uma única classe.** Ex.: dipirona + ibuprofeno + amoxicilina + clorexidina = 3 classes = 1 página.
 
 ## Atualizando o app depois de publicado
 
-Depois de alterar qualquer arquivo, abra `sw.js` e mude a linha `const CACHE = "prescription-v1.2.0";` (ex.: `v1.0.1`). Isso faz os aparelhos baixarem a versão nova.
+Depois de alterar qualquer arquivo, abra `sw.js` e mude a linha `const CACHE = "prescription-v1.2.1";` (ex.: `v1.0.1`). Isso faz os aparelhos baixarem a versão nova.
 
 ## Atenção
 

@@ -1,5 +1,5 @@
 /* Service worker — cache offline. Troque CACHE a cada nova versão para forçar a atualização. */
-const CACHE = "prescription-v1.2.0";
+const CACHE = "prescription-v1.2.1";
 const ASSETS = [
   "./", "./index.html", "./manifest.json",
   "./css/style.css",

@@ -161,8 +161,8 @@
       h += '<div class="banner red"><b class="t">Receita de controle especial</b><p>Este receituário inclui medicamento sujeito a controle especial (RDC Anvisa 222/2023). Use o talonário/receituário apropriado.</p></div>';
 
     var plan = pagePlan(rx.sel);
-    var crowded = plan.some(function (cl) { return rx.sel.filter(function (k) { return cl.indexOf(L.classKey(find(k).gid)) >= 0; }).length > 8; });
-    if (crowded) h += '<div class="banner amber"><b class="t">Muitos medicamentos em uma página</b><p>Cabem até 8 medicamentos por página. Com mais que isso a receita ganhará uma página extra. Remova itens se quiser manter uma única página.</p></div>';
+    var crowded = plan.some(function (cl) { return rx.sel.filter(function (k) { return cl.indexOf(L.classKey(find(k).gid)) >= 0; }).length > 10; });
+    if (crowded) h += '<div class="banner amber"><b class="t">Muitos medicamentos em uma página</b><p>Cabem até 10 medicamentos por página. Com mais que isso a receita ganhará uma página extra. Remova itens se quiser manter uma única página.</p></div>';
     if (plan.length > 1) h += '<div class="banner blue"><b class="t">Receita em ' + plan.length + ' páginas</b><p>Cada página comporta até 3 classes de medicamentos (antibióticos e antissépticos contam como uma só). Todas repetem o nome do paciente, endereço, cidade, data e assinatura.</p>' +
       plan.map(function (cl, i) { return "<p><b>Página " + (i + 1) + ":</b> " + esc(cl.map(classLabel).join(" · ")) + "</p>"; }).join("") + "</div>";
     h += '<button class="btn pri block" style="margin-top:6px" data-act="rxGen"' + (rx.busy ? " disabled" : "") + ">" + (rx.busy ? "Gerando..." : "Gerar receita em PDF") + "</button>";

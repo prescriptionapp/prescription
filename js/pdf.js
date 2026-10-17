@@ -5,7 +5,7 @@
    Regras de paginação:
    • cada receita cabe em UMA página (o conteúdo é reduzido automaticamente até caber);
    • com mais de 3 classes de medicamentos, as classes excedentes vão para novas páginas,
-     e cada página repete paciente, endereço, cidade, data e assinatura. */
+     e cada página repete paciente, endereço, cidade e data (rodapé no fim da página). */
 (function (g) {
   "use strict";
   var MM = 72 / 25.4;
@@ -85,8 +85,7 @@
       }
       var F12 = 12 * s, F11 = 11 * s;
 
-      // Espaço de timbre (28 mm, fixo) com filete
-      y -= 28 * MM;
+      // Filete decorativo no topo (sem espaço em branco acima dele)
       page.drawLine({ start: { x: ML, y: y }, end: { x: W - MR, y: y }, thickness: 1.5, color: black });
       y -= 9 * MM * s;
 
@@ -142,23 +141,20 @@
         y -= bh + 6 * s;
       }
 
-      // Data (à direita) e, acima dela, a cidade CENTRALIZADA em relação à data
-      y -= 14 * s;
-      var dl = safe(reg, opts.dateText), dw = reg.widthOfTextAtSize(dl, F12), dx = W - MR - dw;
+      // Rodapé ancorado no FIM da página: filete decorativo (igual ao do topo) e, acima dele,
+      // a data à direita e a cidade centralizada em relação à data.
+      var lineY = MB, dateY = lineY + 10 * MM, cityY = dateY + 15;
+      page.drawLine({ start: { x: ML, y: lineY }, end: { x: W - MR, y: lineY }, thickness: 1.5, color: black });
+      var dl = safe(reg, opts.dateText), dw = reg.widthOfTextAtSize(dl, 12), dx = W - MR - dw;
+      txt(dl, dx, dateY, reg, 12);
       var city = (opts.attendCity || "").trim();
       if (city) {
-        var cl = safe(reg, city), cw = reg.widthOfTextAtSize(cl, F12);
-        var cx = Math.min(dx + (dw - cw) / 2, W - MR - cw);            // centro da data; nunca passa da margem direita
-        y -= 15 * s; txt(cl, cx, y, reg, F12);
+        var cl = safe(reg, city), cw = reg.widthOfTextAtSize(cl, 12);
+        txt(cl, Math.min(dx + (dw - cw) / 2, W - MR - cw), cityY, reg, 12);   // centro da data; nunca passa da margem
       }
-      y -= 15 * s; txt(dl, dx, y, reg, F12);
 
-      // Linha de assinatura
-      y -= 16 * MM * s;
-      var sw = 65 * MM;
-      page.drawLine({ start: { x: (W - sw) / 2, y: y }, end: { x: (W + sw) / 2, y: y }, thickness: 1, color: black });
-
-      return { overflow: y < MB - 0.5 };
+      // o conteúdo precisa terminar acima do rodapé
+      return { overflow: y < cityY + 20 };
     }
 
     /** Garante UMA página: reduz o conteúdo; só se nem no menor tamanho couber, divide os itens em páginas extras. */
