@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Prescription"/>
+<meta name="theme-color" content="#05070f"/>
+<meta name="description" content="Apoio clínico odontológico: anestesia local, prescrição com receita em PDF, parecer clínico, lesões orais e prontuário digital."/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="icon" href="./icons/favicon-32.png" type="image/png"/>
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
+<title>Prescription</title>
+<link rel="stylesheet" href="./css/style.css"/>
+</head>
+<body>
+<div class="bg"></div>
+<div id="app">
+  <header>
+    <div class="brand"><i></i><span>Prescription</span></div>
+    <nav id="nav"></nav>
+  </header>
+  <main id="main"></main>
+</div>
+<div id="sheet"></div>
+<div id="toast"></div>
+<script src="./vendor/pdf-lib.min.js"></script>
+<script src="./js/data.js"></script>
+<script src="./js/rxlogic.js"></script>
+<script src="./js/pdf.js"></script>
+<script src="./js/core.js"></script>
+<script src="./js/patients.js"></script>
+<script src="./js/anesthesia.js"></script>
+<script src="./js/prescription.js"></script>
+<script src="./js/parecer.js"></script>
+<script src="./js/emergencies.js"></script>
+<script src="./js/boot.js"></script>
+</body>
+</html>
